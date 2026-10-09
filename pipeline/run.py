@@ -10,7 +10,8 @@
   Spearman AUC-vs-profit re-ranking) -> SHAP explainability on the best
   model -> results + explanation artifacts written to <output-dir>/,
   including dashboard.json for the static web frontend (frontend/) to
-  fetch and render.
+  fetch and render, and a Power BI-ready powerbi/ folder (tidy CSVs +
+  Power Query + build guide, `--no-powerbi` to skip).
 
 Usage:
     python -m pipeline.run --data IBM.csv
@@ -74,7 +75,7 @@ from pathlib import Path
 import pandas as pd
 from sklearn.base import clone
 
-from . import dashboard_export, data, evaluate, explain, feature_fusion, models, significance
+from . import dashboard_export, data, evaluate, explain, feature_fusion, models, powerbi_export, significance
 from .blend import DEFAULT_BLEND_MEMBERS, build_blend_hybrid
 from .eprofits import make_composite_scorer_tenure
 from .feature_fusion import SubsetPipeline
@@ -228,6 +229,7 @@ def run_pipeline(
     blend_members: list[str] | None = None,
     significance_analysis: bool = True,
     bootstrap_resamples: int = significance.DEFAULT_N_BOOT,
+    build_powerbi: bool = True,
     f1_weight: float = 0.5,
 ) -> "pd.DataFrame":
     if dataset_schema not in DATASET_SCHEMAS:
@@ -403,8 +405,32 @@ def run_pipeline(
                 best_model_name=best_name,
                 global_importance=global_importance,
                 customer_records=customer_records,
+                test_split={"rows": int(len(y_test)), "positives": int(y_test.sum())},
             )
             print(f"Wrote frontend dashboard data to {dashboard_path}")
+
+            if build_powerbi:
+                # The confusion matrix uses the exact operating point the
+                # reported accuracy/F1 use (results' f1_threshold), and
+                # export_powerbi cross-validates it against those reported
+                # numbers before writing a single file - the Power BI
+                # dashboard can never disagree with model_evaluation.csv.
+                best_proba = fitted_models[best_name].predict_proba(x_test)[:, 1]
+                confusion = powerbi_export.confusion_from_predictions(
+                    y_test.to_numpy(), best_proba, float(results.loc[best_name, "f1_threshold"]),
+                )
+                powerbi_files = powerbi_export.export_powerbi(
+                    out_dir / "powerbi",
+                    results=results,
+                    best_model=best_name,
+                    dataset_summary=dataset_summary,
+                    global_importance=global_importance,
+                    customer_records=customer_records,
+                    confusion=confusion,
+                    survival_method=survival_method,
+                    test_split={"rows": int(len(y_test)), "positives": int(y_test.sum())},
+                )
+                print(f"Wrote {len(powerbi_files)} Power BI files to {out_dir / 'powerbi'}")
 
     return results
 
@@ -488,6 +514,10 @@ def _parse_args():
         help="skip the bootstrap/Wilcoxon/rank-correlation significance analysis (on by default)",
     )
     parser.add_argument(
+        "--no-powerbi", dest="build_powerbi", action="store_false",
+        help="skip the Power BI export (powerbi/ folder of tidy CSVs + Power Query + guide; on by default)",
+    )
+    parser.add_argument(
         "--bootstrap", type=int, default=significance.DEFAULT_N_BOOT,
         help=f"bootstrap resamples for the profit CIs (default: {significance.DEFAULT_N_BOOT}, as in the paper)",
     )
@@ -529,6 +559,7 @@ if __name__ == "__main__":
         blend_members=args.blend_members,
         significance_analysis=args.significance_analysis,
         bootstrap_resamples=args.bootstrap,
+        build_powerbi=args.build_powerbi,
         f1_weight=args.f1_weight,
     )
     print(results)

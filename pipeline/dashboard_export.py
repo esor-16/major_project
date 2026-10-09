@@ -104,6 +104,7 @@ def export_dashboard(
     best_model_name: str,
     global_importance: pd.DataFrame,
     customer_records: list[dict],
+    test_split: dict | None = None,
 ) -> None:
     payload = {
         "generated_at": datetime.datetime.now().isoformat(timespec="seconds"),
@@ -116,4 +117,12 @@ def export_dashboard(
         "shap_global": global_importance.to_dict(orient="records"),
         "shap_customers": customer_records,
     }
+    if test_split is not None:
+        # Consumed by powerbi_export.export_powerbi_from_artifacts to rebuild
+        # the best model's confusion matrix without re-running the pipeline
+        # (older dashboards without this block fall back to split arithmetic).
+        payload["test_split"] = {
+            "rows": int(test_split["rows"]),
+            "positives": int(test_split["positives"]),
+        }
     Path(out_path).write_text(json.dumps(payload, indent=2), encoding="utf-8")

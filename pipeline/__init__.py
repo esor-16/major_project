@@ -12,5 +12,7 @@ Layered modules replacing the Phase-1 notebook (`ibm_model_another_genetic.ipynb
 - explain         : SHAP explainability, global + per-customer
 - evaluate        : unified traditional + profitability evaluation
 - dashboard_export: packages results/SHAP into dashboard.json for frontend/
+- powerbi_export  : Power BI integration - tidy CSV tables + Power Query +
+                     build guide in <output-dir>/powerbi/ (`--no-powerbi`)
 - run             : end-to-end orchestration / CLI entry point
 """

@@ -20,6 +20,7 @@ pip install -r requirements.txt
   - `evaluate.py` — unified traditional (Accuracy/F1/ROC-AUC) + profitability (EMP/eProfits incl. top-20% segment) + risk-prioritisation (top-decile lift, lift index) evaluation per model
   - `explain.py` — SHAP explainability for the best-performing model: global feature importance + per-customer, signed contributions (TreeExplainer for tree-based models including feature-fusion hybrids, a model-agnostic Explainer otherwise)
   - `dashboard_export.py` — packages the evaluation table + SHAP results into `artifacts/dashboard.json` for the web frontend
+  - `powerbi_export.py` — the Power BI integration: tidy CSV tables + paste-ready Power Query + build guide in `<output-dir>/powerbi/` — see [Power BI integration](#power-bi-integration) below
   - `run.py` — end-to-end CLI orchestrator
 - `tests/` — pytest suite (`pytest -m "not slow"` for the fast checks, drop the `-m` filter to include the end-to-end GA smoke tests)
 - `frontend/` — web dashboard, wired to real pipeline results via `artifacts/dashboard.json` (see [frontend/README.md](frontend/README.md))
@@ -55,10 +56,42 @@ Writes to `artifacts/`:
 - `shap_global_importance.csv` — the best model's churn drivers, ranked by mean |SHAP value|
 - `shap_customer_explanations.csv` — top 5 signed feature contributions per explained customer
 - `dashboard.json` — the above, packaged for `frontend/` to fetch and render (see [frontend/README.md](frontend/README.md) to view it)
+- `powerbi/` — Power BI-ready tables + queries (see [Power BI integration](#power-bi-integration))
 
 SHAP runs automatically on the top-ranked model after evaluation (`--no-explain` to skip it, `--explain-sample-size N` to change how many test-set rows get explained — default 200).
 
 Note on runtime: the default `--population-size 8 --generations 5 --cv 3` is a deliberately reduced GA budget. The current default runs 9 GA searches (5 baselines + 3 fusion hybrids, plus the feature-count sweep) plus the blend's cheap weight sweep and the significance analysis — expect several minutes on the full IBM dataset. For reported/final numbers, raise the budget (`--population-size 20 --generations 10 --cv 5`) once you've confirmed what your hardware can take.
+
+## Power BI integration
+
+Every run (unless `--no-powerbi`) writes an import-ready **`<output-dir>/powerbi/`** folder — flat, tidy CSVs a Power BI report can consume with no data modelling:
+
+| File | Grain | Use it for |
+|---|---|---|
+| `models.csv` | one row per model (sorted by e-Profits, `is_best`/`is_hybrid` flags) | the paper's e-Profits bar chart + results table |
+| `metrics_long.csv` | one row per model × metric | a single-select metric slicer driving one Value-by-Model bar chart across AUC/F1/e-Profits/lift |
+| `shap_importance.csv` | one row per feature (`share_pct`) | churn-driver chart |
+| `top_customers.csv` | one row per customer, risk-ranked | retention call list (decoded categories + primary SHAP driver/direction) |
+| `confusion_matrix.csv` | 4 cells, actual × predicted | the 2×2 matrix visual |
+| `best_model.csv` | one row | KPI cards incl. precision/recall and the reporting threshold |
+| `dataset.csv` | one row | report header: dataset, split, survival method, `generated_at` |
+
+Two companions: **`README.md`** (step-by-step load + publish instructions) and **`power_query.m`** (paste-ready M queries with a single `SourceFolder` path — re-pointing the report at a new run is a one-string edit).
+
+**Guarantee:** the best model's confusion matrix is built at the exact operating point the reported accuracy/F1 use (`f1_threshold`) and cross-validated against `model_evaluation.csv` *before any file is written* — the dashboard cannot disagree with the results table. A mismatch (wrong test size, inconsistent inputs) fails the run loudly instead of exporting a wrong report.
+
+```bash
+python -m pipeline.run --data IBM.csv          # exports artifacts/powerbi/ automatically
+python -m pipeline.run --data IBM.csv --no-powerbi
+
+# regenerate from an existing run's artifacts, no retraining:
+python -m pipeline.powerbi_export --artifacts artifacts
+python -m pipeline.powerbi_export --artifacts artifacts_km --survival km
+# (older artifacts without a test_split block fall back to ceil(0.3*rows)
+#  and churn_rate*n; override with --n-test/--positives if needed)
+```
+
+In Power BI Desktop: **Get data → Text/CSV** (or **Folder** → Combine) → point at the `powerbi/` folder → **Refresh** re-reads the same paths after every re-run; publishing to the Service needs a gateway for the local path (or move the folder to SharePoint/OneDrive). Significance tables (`bootstrap_ci.csv`, `wilcoxon_tests.csv`, `rank_correlation.csv`) live one level up and import the same way for a significance page.
 
 ## The e-Profits economic inputs (paper Eq. 3–5)
 

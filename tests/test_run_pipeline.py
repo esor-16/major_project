@@ -4,6 +4,7 @@ with minimal GA settings, to confirm the modules wire together correctly.
 Full-scale, full-dataset runs are driven via `python -m pipeline.run` (see
 NFR3/TC8 timing in the synopsis).
 """
+import json
 from pathlib import Path
 
 import pytest
@@ -134,6 +135,20 @@ def test_run_pipeline_end_to_end_via_run_pipeline_function(tmp_path):
     assert (tmp_path / "wilcoxon_tests.csv").exists()
     assert (tmp_path / "rank_correlation.csv").exists()
     assert (tmp_path / "dashboard.json").exists()
+
+    # Power BI integration: the same run must emit a load-ready powerbi/
+    # folder, and dashboard.json must carry the test_split block the
+    # offline regeneration path (powerbi_export.export_powerbi_from_artifacts)
+    # needs to rebuild the confusion matrix without retraining.
+    for name in ["models.csv", "metrics_long.csv", "confusion_matrix.csv",
+                 "best_model.csv", "dataset.csv", "README.md", "power_query.m"]:
+        assert (tmp_path / "powerbi" / name).exists(), name
+    payload = json.loads((tmp_path / "dashboard.json").read_text(encoding="utf-8"))
+    assert payload["test_split"]["rows"] > 0
+    assert payload["test_split"]["positives"] > 0
+    # the exported confusion matrix must partition exactly that test split
+    conf_rows = (tmp_path / "powerbi" / "confusion_matrix.csv").read_text(encoding="utf-8").splitlines()[1:]
+    assert sum(int(r.split(",")[-1]) for r in conf_rows) == payload["test_split"]["rows"]
 
     # the new paper-style evaluation columns all present and finite
     for col in ["top_decile_lift", "lift_index", "eprofits_top20_avg", "eprofits_top20_tenure"]:
