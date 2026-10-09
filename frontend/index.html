@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EPROFITS Churn Intelligence</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="rail" aria-label="Workspace">
+        <div class="brand-mark">EP</div>
+        <nav class="rail-nav" aria-label="Dashboard sections">
+          <button class="nav-button active" data-view="overview" type="button" title="Overview">
+            <span>Overview</span>
+          </button>
+          <button class="nav-button" data-view="customer" type="button" title="Customer">
+            <span>Customer</span>
+          </button>
+          <button class="nav-button" data-view="models" type="button" title="Models">
+            <span>Models</span>
+          </button>
+          <button class="nav-button" data-view="retention" type="button" title="Retention">
+            <span>Retention</span>
+          </button>
+        </nav>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Telecom churn retention</p>
+            <h1>EPROFITS Churn Intelligence</h1>
+          </div>
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            <span id="dataset-pill-name">IBM Telco dataset</span>
+          </div>
+        </header>
+
+        <section class="dataset-panel card" aria-label="Dataset controls">
+          <div class="dataset-copy">
+            <span class="muted">Dataset source</span>
+            <strong id="dataset-title">IBM Telco baseline</strong>
+            <p id="dataset-note">Notebook dataset with contract, tenure, services, billing, charges, and churn labels.</p>
+          </div>
+          <div class="dataset-actions">
+            <label class="dataset-field">
+              <span>Change dataset</span>
+              <select id="dataset-select">
+                <option value="ibm">IBM Telco baseline</option>
+                <option value="stress">High-risk pilot sample</option>
+                <option value="loyal">Loyal customer sample</option>
+                <option value="uploaded">Uploaded CSV</option>
+              </select>
+            </label>
+            <label class="upload-button" for="dataset-file">Upload CSV</label>
+            <input class="visually-hidden" id="dataset-file" type="file" accept=".csv,text/csv">
+          </div>
+          <div class="dataset-stats">
+            <span><b id="dataset-rows">7,043</b>Customers</span>
+            <span><b id="dataset-columns">21</b>Columns</span>
+            <span><b id="dataset-avg-tenure">32.4</b>Avg tenure</span>
+            <span><b id="dataset-avg-charge">$65</b>Avg charge</span>
+          </div>
+        </section>
+
+        <section class="view active" data-view-panel="overview">
+          <div class="dashboard-grid">
+            <article class="card outcome-card">
+              <div class="donut-wrap" aria-label="Outcome split">
+                <div class="donut" id="outcome-donut">
+                  <div class="donut-core">
+                    <span>Outcome</span>
+                    <strong>Analysis</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="metric-row">
+                <div>
+                  <span class="muted">Retained</span>
+                  <strong id="retained-rate">73.5%</strong>
+                </div>
+                <div>
+                  <span class="muted">Churn</span>
+                  <strong id="churn-rate">26.5%</strong>
+                </div>
+              </div>
+            </article>
+
+            <article class="card dark-card">
+              <span class="small-icon cart-icon" aria-hidden="true"></span>
+              <div>
+                <strong id="churn-count">1,869</strong>
+                <span>Churned customers</span>
+              </div>
+            </article>
+
+            <article class="card income-card">
+              <div class="bag-icon" aria-hidden="true"></div>
+              <div>
+                <span class="muted">E-profits tenure</span>
+                <strong id="eprofit-tenure">$3.80M</strong>
+              </div>
+              <span class="growth" id="dataset-growth">+4.5%</span>
+            </article>
+
+            <article class="card activity-card">
+              <div class="card-head">
+                <h2>Survival Horizon</h2>
+                <span id="survival-horizon-label">72 months</span>
+              </div>
+              <div class="activity-bars" id="activity-bars" aria-label="Retention activity by tenure band">
+                <span style="--high: 88%; --low: 34%"><i></i><b>0-6</b></span>
+                <span style="--high: 72%; --low: 18%"><i></i><b>7-18</b></span>
+                <span style="--high: 58%; --low: 42%"><i></i><b>19-36</b></span>
+                <span style="--high: 44%; --low: 16%"><i></i><b>37-54</b></span>
+                <span style="--high: 32%; --low: 20%"><i></i><b>55-72</b></span>
+              </div>
+            </article>
+
+            <article class="card chart-card">
+              <div class="card-head">
+                <h2>Model Transactions</h2>
+                <span id="chart-subtitle">Genetic tuning</span>
+              </div>
+              <svg class="line-chart" viewBox="0 0 660 260" role="img" aria-label="Model score comparison chart">
+                <defs>
+                  <pattern id="grid" width="44" height="32" patternUnits="userSpaceOnUse">
+                    <path d="M 44 0 L 0 0 0 32" fill="none" stroke="#d8ddea" stroke-width="1"/>
+                  </pattern>
+                </defs>
+                <rect width="660" height="260" fill="url(#grid)"></rect>
+                <path class="chart-line green" d="M18 192 L58 166 L98 176 L138 142 L178 152 L218 122 L258 136 L298 116 L338 128 L378 98 L418 110 L458 92 L498 104 L538 86 L578 102 L620 88"></path>
+                <path class="chart-line blue" d="M18 210 L58 188 L98 194 L138 174 L178 164 L218 154 L258 144 L298 136 L338 132 L378 122 L418 118 L458 112 L498 106 L538 98 L578 94 L620 90"></path>
+                <path class="chart-line pink" d="M18 222 L58 230 L98 218 L138 226 L178 214 L218 224 L258 206 L298 216 L338 202 L378 210 L418 194 L458 204 L498 190 L538 202 L578 214 L620 224"></path>
+                <g class="chart-points"></g>
+              </svg>
+              <div class="legend">
+                <span><i class="green-dot"></i><b id="legend-a-label">EBM AUC</b></span>
+                <span><i class="blue-dot"></i><b id="legend-b-label">XGB AUC</b></span>
+                <span><i class="pink-dot"></i><b id="chart-risk-label">Misclassification</b></span>
+              </div>
+            </article>
+
+            <article class="model-stack" aria-label="Model score cards">
+              <div class="model-card paypal">
+                <span id="stack-a-name">EBM</span>
+                <strong id="stack-a-value">0.862 AUC</strong>
+              </div>
+              <div class="model-card visa">
+                <span id="stack-b-name">XGBoost</span>
+                <strong id="stack-b-value">0.856 AUC</strong>
+              </div>
+              <div class="model-card master">
+                <span>EMP</span>
+                <strong id="stack-emp-value">10.28</strong>
+              </div>
+              <div class="model-card apple">
+                <span>CoxPH</span>
+                <strong id="stack-arr-value">ARR 0.951</strong>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" data-view-panel="customer">
+          <div class="split-layout">
+            <article class="card customer-card">
+              <div class="card-head">
+                <h2>Customer Risk</h2>
+                <span id="risk-band">Moderate</span>
+              </div>
+              <div class="risk-meter">
+                <div class="risk-ring" id="risk-ring">
+                  <div>
+                    <span>Churn</span>
+                    <strong id="risk-score">37%</strong>
+                  </div>
+                </div>
+                <div class="customer-summary">
+                  <p id="customer-summary-text">Month-to-month fiber customer with electronic check billing.</p>
+                  <div class="score-strip">
+                    <span><b id="retention-value">$1,935</b> Value</span>
+                    <span><b id="save-window">12 mo</b> Save window</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="control-grid">
+                <label>
+                  <span>Contract</span>
+                  <select id="contract">
+                    <option>Month-to-month</option>
+                    <option>One year</option>
+                    <option>Two year</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Internet</span>
+                  <select id="internet">
+                    <option>Fiber optic</option>
+                    <option>DSL</option>
+                    <option>No</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Payment</span>
+                  <select id="payment">
+                    <option>Electronic check</option>
+                    <option>Mailed check</option>
+                    <option>Bank transfer (automatic)</option>
+                    <option>Credit card (automatic)</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Tech support</span>
+                  <select id="support">
+                    <option>No</option>
+                    <option>Yes</option>
+                    <option>No internet service</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Online security</span>
+                  <select id="security">
+                    <option>No</option>
+                    <option>Yes</option>
+                    <option>No internet service</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Paperless</span>
+                  <select id="paperless">
+                    <option>Yes</option>
+                    <option>No</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Tenure <b id="tenure-value">12</b> mo</span>
+                  <input id="tenure" type="range" min="0" max="72" value="12">
+                </label>
+                <label>
+                  <span>Monthly charge $<b id="charge-value">80</b></span>
+                  <input id="charge" type="range" min="18" max="119" value="80">
+                </label>
+              </div>
+            </article>
+
+            <article class="card survival-card">
+              <div class="card-head">
+                <h2>Individual Survival</h2>
+                <span>CoxPH view</span>
+              </div>
+              <svg id="survival-chart" class="survival-chart" viewBox="0 0 620 300" role="img" aria-label="Survival probability curve"></svg>
+              <div class="driver-list" id="driver-list"></div>
+            </article>
+          </div>
+
+          <article class="card shap-card" id="shap-customers-card" hidden>
+            <div class="card-head">
+              <h2>Real Customer Explanations</h2>
+              <span id="shap-customers-subtitle">SHAP · live pipeline run</span>
+            </div>
+            <p class="muted shap-note">Ranked by predicted churn risk from the last pipeline run. Select a customer to see exactly why the model flagged them.</p>
+            <div class="shap-customers-layout">
+              <div class="customer-row-list" id="shap-customer-list"></div>
+              <div class="shap-detail" id="shap-customer-detail"></div>
+            </div>
+          </article>
+        </section>
+
+        <section class="view" data-view-panel="models">
+          <div class="models-layout">
+            <article class="card table-card">
+              <div class="card-head">
+                <h2>Evaluation Metrics</h2>
+                <span id="model-subtitle">Notebook baseline</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Model</th>
+                      <th>Accuracy</th>
+                      <th>F1</th>
+                      <th>AUC</th>
+                      <th>E-profits avg</th>
+                      <th>E-profits tenure</th>
+                    </tr>
+                  </thead>
+                  <tbody id="model-table"></tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="card explain-card">
+              <div class="card-head">
+                <h2>XAI Drivers</h2>
+                <span id="xai-subtitle">Dataset drivers</span>
+              </div>
+              <div class="bars" id="xai-bars"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" data-view-panel="retention">
+          <div class="retention-layout">
+            <article class="card plan-card">
+              <div class="card-head">
+                <h2>Retention Campaign</h2>
+                <span>Profit-sensitive</span>
+              </div>
+              <div class="campaign-score">
+                <strong id="campaign-score">$588K</strong>
+                <span id="campaign-score-note">Projected E-profits average from tuned XGBoost run</span>
+              </div>
+              <div class="plan-steps" id="plan-steps"></div>
+            </article>
+            <article class="card segment-card">
+              <div class="card-head">
+                <h2>Priority Segments</h2>
+                <span id="segments-subtitle">Churn rate</span>
+              </div>
+              <div class="segments" id="segments"></div>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

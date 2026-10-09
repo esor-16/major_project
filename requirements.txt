@@ -1,0 +1,17 @@
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+lifelines
+EMP-PY
+interpret
+sklearn-genetic-opt
+scipy
+ipython
+xgboost
+lightgbm
+catboost
+imbalanced-learn
+shap
+pytest
