@@ -31,11 +31,25 @@ function pipelineActive() {
   return Boolean(state.pipeline) && state.datasetId === "ibm";
 }
 
+// The dashboard shows only the hybrid's build story: the three component
+// models it is made of - Random Forest (donor A), LightGBM (donor B) and
+// XGBoost (recipient) - kept as separate rows, PLUS hybrid_union itself.
+// The other run variants (rank_fusion / intersection / blend, CatBoost,
+// EBM) remain in artifacts/model_evaluation.csv and the Power BI export;
+// they are simply hidden from this dashboard's model views.
+const DASHBOARD_MODELS = ["hybrid_union", "xgb", "random_forest", "lightgbm"];
+
 async function loadPipelineData() {
   try {
     const response = await fetch("../artifacts/dashboard.json", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
+
+    // Keep only the component models + hybrid_union before anything renders
+    // (table, AUC stack cards, chart legends, EMP card all read from here).
+    payload.models = (payload.models || []).filter((model) =>
+      DASHBOARD_MODELS.includes(model.name)
+    );
 
     state.pipeline = payload;
 
